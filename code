@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generatore di Associazioni</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(160deg, #4a90e2, #8ec5fc);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    color: #fff;
+  }
+
+  header {
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin: 0;
+  }
+
+  main {
+    flex: 1;
+    width: 90%;
+    max-width: 500px;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  button {
+    background: #fff;
+    color: #4a90e2;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: background 0.3s;
+  }
+
+  button:hover {
+    background: #e0e7ff;
+  }
+
+  .output {
+    font-size: 1.2rem;
+    margin-top: 15px;
+    line-height: 1.4;
+  }
+
+  input[type="text"] {
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    width: calc(100% - 100px);
+    margin-bottom: 10px;
+    box-sizing: border-box;
+  }
+
+  .list-section {
+    margin-top: 15px;
+  }
+
+  .list-items span {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    margin: 3px;
+    padding: 6px 10px;
+    border-radius: 10px;
+  }
+
+  .remove {
+    margin-left: 6px;
+    color: #ffcccc;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Generatore di Associazioni</h1>
+</header>
+
+<main>
+  <div class="card">
+    <button id="generateBtn">Genera combinazione</button>
+    <div class="output" id="output">Premi il pulsante per iniziare</div>
+  </div>
+
+  <div class="card">
+    <h2>Liste personalizzabili</h2>
+
+    <!-- Soggetti -->
+    <div class="list-section">
+      <strong>Soggetti</strong><br>
+      <input type="text" id="newSubject" placeholder="Aggiungi soggetto">
+      <button onclick="addSubject()">Aggiungi</button>
+      <div class="list-items" id="subjectsList"></div>
+    </div>
+
+    <!-- Aggettivi -->
+    <div class="list-section">
+      <strong>Aggettivi</strong><br>
+      <input type="text" id="newAdjective" placeholder="Aggiungi aggettivo">
+      <button onclick="addAdjective()">Aggiungi</button>
+      <div class="list-items" id="adjectivesList"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Recupero da LocalStorage o default
+  let subjects = JSON.parse(localStorage.getItem('subjects')) || ["paesaggio", "personaggio", "oggetto"];
+  let adjectives = JSON.parse(localStorage.getItem('adjectives')) || ["oscuro", "luminoso", "antico", "misterioso", "gigantesco", "fragile"];
+
+  function saveLists() {
+    localStorage.setItem('subjects', JSON.stringify(subjects));
+    localStorage.setItem('adjectives', JSON.stringify(adjectives));
+  }
+
+  function renderLists() {
+    document.getElementById('subjectsList').innerHTML = subjects.map((s, i) =>
+      `<span>${s} <span class="remove" onclick="removeSubject(${i})">x</span></span>`
+    ).join(' ');
+
+    document.getElementById('adjectivesList').innerHTML = adjectives.map((a, i) =>
+      `<span>${a} <span class="remove" onclick="removeAdjective(${i})">x</span></span>`
+    ).join(' ');
+  }
+
+  function addSubject() {
+    const input = document.getElementById('newSubject');
+    const value = input.value.trim();
+    if (value && !subjects.includes(value)) {
+      subjects.push(value);
+      saveLists();
+      renderLists();
+    }
+    input.value = '';
+  }
+
+  function addAdjective() {
+    const input = document.getElementById('newAdjective');
+    const value = input.value.trim();
+    if (value && !adjectives.includes(value)) {
+      adjectives.push(value);
+      saveLists();
+      renderLists();
+    }
+    input.value = '';
+  }
+
+  function removeSubject(index) {
+    subjects.splice(index, 1);
+    saveLists();
+    renderLists();
+  }
+
+  function removeAdjective(index) {
+    adjectives.splice(index, 1);
+    saveLists();
+    renderLists();
+  }
+
+  function getRandomElement(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', () => {
+    if (subjects.length === 0 || adjectives.length < 2) {
+      document.getElementById('output').innerHTML = "⚠️ Aggiungi almeno 1 soggetto e 2 aggettivi.";
+      return;
+    }
+    const subject = getRandomElement(subjects);
+    let adj1 = getRandomElement(adjectives);
+    let adj2 = getRandomElement(adjectives);
+
+    while (adj2 === adj1 && adjectives.length > 1) {
+      adj2 = getRandomElement(adjectives);
+    }
+
+    document.getElementById('output').innerHTML = 
+      `<strong>Soggetto:</strong> ${subject}<br><strong>Aggettivi:</strong> ${adj1}, ${adj2}`;
+  });
+
+  // Render iniziale
+  renderLists();
+</script>
+</body>
+</html>
